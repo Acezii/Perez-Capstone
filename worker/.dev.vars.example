@@ -1,0 +1,5 @@
+# Copy this file to .dev.vars and replace the placeholders.
+# Never commit .dev.vars or expose the service-role key to the browser.
+SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=PASTE_YOUR_ROTATED_SERVICE_ROLE_KEY_HERE
+APP_SECRET=replace-with-a-long-random-secret
