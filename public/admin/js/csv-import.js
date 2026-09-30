@@ -39,11 +39,14 @@ function wireDrop(dropEl, fileInput, browseBtn, resultEl, endpoint) {
   }
 }
 
-export function initCsvImport({ studentDrop, studentFile, studentBrowseBtn, studentResult, subjectDrop, subjectFile, subjectBrowseBtn, subjectResult }, onDone) {
+export function initCsvImport({ studentDrop, studentFile, studentBrowseBtn, studentResult, subjectDrop, subjectFile, subjectBrowseBtn, subjectResult, gradesDrop, gradesFile, gradesBrowseBtn, gradesResult }, onDone) {
   wireDrop(studentDrop, studentFile, studentBrowseBtn, studentResult, "/api/import/students");
   wireDrop(subjectDrop, subjectFile, subjectBrowseBtn, subjectResult, "/api/import/subjects");
+  wireDrop(gradesDrop, gradesFile, gradesBrowseBtn, gradesResult, "/api/import/grades");
   studentFile.addEventListener("change", () => setTimeout(onDone, 800));
   subjectFile.addEventListener("change", () => setTimeout(onDone, 800));
+  gradesFile.addEventListener("change", () => setTimeout(onDone, 800));
   studentDrop.addEventListener("drop", () => setTimeout(onDone, 800));
   subjectDrop.addEventListener("drop", () => setTimeout(onDone, 800));
+  gradesDrop.addEventListener("drop", () => setTimeout(onDone, 800));
 }

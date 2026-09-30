@@ -74,3 +74,52 @@ export function eligibleSubjects(subjects, prereqMap, completedIds) {
     return reqs.every((r) => completed.has(r));
   });
 }
+
+function termBuilderContext(subjects, prereqMap, records) {
+  const statusById = new Map(records.map((record) => [record.subject_id, record.status]));
+  const completed = new Set(
+    records.filter((record) => record.status === "completed").map((record) => record.subject_id)
+  );
+  const terms = [...new Set(subjects.map((subject) => `${subject.year_level}-${subject.sem}`))]
+    .sort((a, b) => {
+      const [ay, as] = a.split("-").map(Number);
+      const [by, bs] = b.split("-").map(Number);
+      return ay - by || as - bs;
+    });
+  const termIndex = new Map(terms.map((term, index) => [term, index]));
+  const blockedByFailed = (subjectId, visited = new Set()) => {
+    if (visited.has(subjectId)) return false;
+    visited.add(subjectId);
+    return (prereqMap[subjectId] || []).some(
+      (prerequisiteId) =>
+        statusById.get(prerequisiteId) === "failed" || blockedByFailed(prerequisiteId, visited)
+    );
+  };
+  const nextTermIndex = terms.findIndex((term) =>
+    subjects.some(
+      (subject) =>
+        `${subject.year_level}-${subject.sem}` === term &&
+        !statusById.has(subject.id) &&
+        !blockedByFailed(subject.id)
+    )
+  );
+  const targetIndex = nextTermIndex === -1 ? terms.length : nextTermIndex;
+  return { statusById, completed, terms, termIndex, targetIndex };
+}
+
+export function termBuilderTargetTerm(subjects, prereqMap, records) {
+  const { terms, targetIndex } = termBuilderContext(subjects, prereqMap, records);
+  return terms[targetIndex] || null;
+}
+
+export function termBuilderEligibleSubjects(subjects, prereqMap, records) {
+  const { statusById, completed, termIndex, targetIndex } = termBuilderContext(subjects, prereqMap, records);
+
+  return subjects.filter((subject) => {
+    if (completed.has(subject.id)) return false;
+    const subjectTermIndex = termIndex.get(`${subject.year_level}-${subject.sem}`);
+    const failedCarryover = statusById.get(subject.id) === "failed" && subjectTermIndex < targetIndex - 1;
+    if (subjectTermIndex !== targetIndex && !failedCarryover) return false;
+    return (prereqMap[subject.id] || []).every((prerequisiteId) => completed.has(prerequisiteId));
+  });
+}

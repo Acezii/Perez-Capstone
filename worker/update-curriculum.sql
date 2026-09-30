@@ -1,6 +1,6 @@
 DELETE FROM enrollments;
 DELETE FROM sections;
-DELETE FROM prerequisites;
+DELETE FROM prerequisites WHERE subject_id IS NOT NULL;
 DELETE FROM subjects
 WHERE id IN ('CY351','DS351','SD351','CY352','DS352','DS353','SD352','SD353','CYB451','DS354','SD354');
 
@@ -67,6 +67,10 @@ ON CONFLICT (id) DO UPDATE SET
 	year_level = excluded.year_level,
 	sem = excluded.sem;
 INSERT INTO prerequisites (subject_id, prerequisite_id) VALUES
+('PE102','PE101'),
+('PE103','PE102'),
+('PE104','PE103'),
+('NST102','NST101'),
 ('ITE113','ITE112'),
 ('ITE231','ITE113'),
 ('ITE231','ITE115'),
@@ -74,6 +78,11 @@ INSERT INTO prerequisites (subject_id, prerequisite_id) VALUES
 ('ITE216','ITE112'),
 ('ITE223','ITE231'),
 ('ITE234','ITE221'),
+('ITE324','ITE321'),
+('ITE325','ITE322'),
+('ITE326','ITE331'),
+('ITE327','ITE321'),
+('ITE328','ITE341'),
 ('ITE431','ITE327'),
 ('ITE422','ITE326'),
 ('ITE441','SSP101');

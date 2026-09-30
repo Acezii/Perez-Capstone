@@ -136,6 +136,10 @@ initCsvImport(
     subjectFile: document.getElementById("subjectFile"),
     subjectBrowseBtn: document.getElementById("subjectBrowseBtn"),
     subjectResult: document.getElementById("subjectImportResult"),
+    gradesDrop: document.getElementById("gradesDrop"),
+    gradesFile: document.getElementById("gradesFile"),
+    gradesBrowseBtn: document.getElementById("gradesBrowseBtn"),
+    gradesResult: document.getElementById("gradesImportResult"),
   },
   loadRoster
 );

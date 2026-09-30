@@ -61,6 +61,10 @@ INSERT INTO subjects (id, code, name, units, year_level, sem) VALUES
 ('UID107','UID107','Workplace Preparation',1,4,1),
 ('ITE423','ITE423','Industry Immersion',6,4,2);
 INSERT INTO prerequisites (subject_id, prerequisite_id) VALUES
+('PE102','PE101'),
+('PE103','PE102'),
+('PE104','PE103'),
+('NST102','NST101'),
 ('ITE113','ITE112'),
 ('ITE231','ITE113'),
 ('ITE231','ITE115'),
@@ -68,6 +72,11 @@ INSERT INTO prerequisites (subject_id, prerequisite_id) VALUES
 ('ITE216','ITE112'),
 ('ITE223','ITE231'),
 ('ITE234','ITE221'),
+('ITE324','ITE321'),
+('ITE325','ITE322'),
+('ITE326','ITE331'),
+('ITE327','ITE321'),
+('ITE328','ITE341'),
 ('ITE431','ITE327'),
 ('ITE422','ITE326'),
 ('ITE441','SSP101');

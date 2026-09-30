@@ -92,7 +92,7 @@
   <div class="panel-head">
     <p class="panel-tag">02 — CSV Import</p>
     <h2>Bulk-load students and subjects</h2>
-    <p>Drop a CSV or pick a file. Students need columns: student_number, first_name, last_name, email, program, year_level, is_irregular, is_shifter. Subjects need: code, name, units, year_level, sem, prerequisites (semicolon-separated codes).</p>
+    <p>Drop a CSV or pick a file. Students need student details, subjects need code, name, units, year_level, sem, and prerequisites. Grades need student_number, subject_code, grade, and optional term.</p>
   </div>
   <div class="import-grid">
     <div class="card import-drop" id="studentDrop" data-kind="students">
@@ -110,6 +110,14 @@
       <input type="file" id="subjectFile" accept=".csv" hidden>
       <button class="btn-ghost btn-sm" id="subjectBrowseBtn">Choose file</button>
       <div class="import-result" id="subjectImportResult"></div>
+    </div>
+    <div class="card import-drop" id="gradesDrop" data-kind="grades">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>
+      <h3>Grades CSV</h3>
+      <p>student_number, subject_code, grade</p>
+      <input type="file" id="gradesFile" accept=".csv" hidden>
+      <button class="btn-ghost btn-sm" id="gradesBrowseBtn">Choose file</button>
+      <div class="import-result" id="gradesImportResult"></div>
     </div>
   </div>
   <div class="panel-head" style="margin-top:36px;">

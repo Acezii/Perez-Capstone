@@ -43,7 +43,7 @@ if ("serviceWorker" in navigator) {
 }
 document.addEventListener("keydown", function(e){
   var key = (e.key || "").toLowerCase();
-  if (e.ctrlKey && e.metaKey && key === "1") {
+  if (navigator.onLine && e.ctrlKey && e.metaKey && key === "1") {
     window.location.href = "/admin/";
   }
 });

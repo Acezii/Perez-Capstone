@@ -1,5 +1,5 @@
 import { hashPassword, verifyPassword, signToken, requireAuth, generateQrToken } from "./auth.js";
-import { kahnOrder, greedySchedule, eligibleSubjects } from "./scheduling.js";
+import { kahnOrder, greedySchedule, eligibleSubjects, termBuilderEligibleSubjects } from "./scheduling.js";
 import { askAssistant } from "./ai.js";
 
 const CORS_HEADERS = {
@@ -32,11 +32,16 @@ async function loadCurriculum(db) {
 
 async function studentProgress(db, studentId) {
   const { subjects, prereqMap } = await loadCurriculum(db);
-  const completedRows = (
-    await db.prepare("SELECT subject_id FROM student_subjects WHERE student_id = ? AND status = 'completed'").bind(studentId).all()
+  const subjectRecords = (
+    await db.prepare("SELECT subject_id, status FROM student_subjects WHERE student_id = ?").bind(studentId).all()
   ).results;
+  const completedRows = subjectRecords.filter((record) => record.status === "completed");
   const completedIds = completedRows.map((r) => r.subject_id);
   const completedSet = new Set(completedIds);
+  const statusById = new Map(subjectRecords.map((record) => [record.subject_id, record.status]));
+  const termBuilderEligible = new Set(
+    termBuilderEligibleSubjects(subjects, prereqMap, subjectRecords).map((subject) => subject.id)
+  );
   const totalUnits = subjects.reduce((a, s) => a + s.units, 0);
   const completedUnits = subjects.filter((s) => completedSet.has(s.id)).reduce((a, s) => a + s.units, 0);
   const remainingUnits = totalUnits - completedUnits;
@@ -45,12 +50,14 @@ async function studentProgress(db, studentId) {
     const s = subjects.find((x) => x.id === id);
     let status = "locked";
     if (completedSet.has(id)) status = "completed";
-    else if ((prereqMap[id] || []).every((p) => completedSet.has(p))) status = "eligible";
+    else if (statusById.get(id) === "failed") status = "failed";
+    else if (termBuilderEligible.has(id)) status = "eligible";
     return { ...s, status };
   });
   const estSemesters = Math.max(0, Math.ceil(remainingUnits / 18));
   return {
     subjects: withStatus,
+    termBuilderSubjectIds: [...termBuilderEligible],
     prereqMap,
     completedIds,
     totalUnits,
@@ -163,6 +170,38 @@ async function handleImportSubjects(db, text, adminId) {
     }
   }
   await db.prepare("INSERT INTO import_logs (kind, rows_ok, rows_failed, admin_id) VALUES ('subjects', ?, ?, ?)").bind(ok, failed, adminId).run();
+  return { ok, failed };
+}
+
+async function handleImportGrades(db, text, adminId) {
+  const { rows } = parseCsv(text);
+  let ok = 0, failed = 0;
+  for (const row of rows) {
+    try {
+      const studentNumber = String(row.student_number || row.studentNumber || "").trim();
+      const subjectCode = String(row.subject_code || row.subjectCode || row.code || "").trim();
+      const grade = String(row.grade || "").trim();
+      if (!studentNumber || !subjectCode || !grade) throw new Error("student_number, subject_code, and grade are required");
+      const numericGrade = Number(grade);
+      if (!Number.isFinite(numericGrade) || numericGrade < 1 || numericGrade > 5) throw new Error("grade must be between 1.00 and 5.00");
+      const student = await db.prepare("SELECT id FROM students WHERE student_number = ?").bind(studentNumber).first();
+      if (!student) throw new Error("student not found");
+      const subject = await db.prepare("SELECT id FROM subjects WHERE code = ?").bind(subjectCode).first();
+      if (!subject) throw new Error("subject not found");
+      const status = numericGrade <= 3 ? "completed" : "failed";
+      await db
+        .prepare(
+          `INSERT INTO student_subjects (student_id, subject_id, status, term, grade) VALUES (?,?,?,?,?)
+           ON CONFLICT(student_id, subject_id) DO UPDATE SET status=excluded.status, term=excluded.term, grade=excluded.grade, updated_at=datetime('now')`
+        )
+        .bind(student.id, subject.id, status, row.term || null, grade)
+        .run();
+      ok++;
+    } catch (e) {
+      failed++;
+    }
+  }
+  await db.prepare("INSERT INTO import_logs (kind, rows_ok, rows_failed, admin_id) VALUES ('grades', ?, ?, ?)").bind(ok, failed, adminId).run();
   return { ok, failed };
 }
 
@@ -380,6 +419,14 @@ export default {
         if (!auth) return err("Unauthorized", 401);
         const text = await request.text();
         const result = await handleImportSubjects(db, text, auth.sub);
+        return json({ result });
+      }
+
+      if (path === "/api/import/grades" && request.method === "POST") {
+        const auth = await requireAuth(request, env, "admin");
+        if (!auth) return err("Unauthorized", 401);
+        const text = await request.text();
+        const result = await handleImportGrades(db, text, auth.sub);
         return json({ result });
       }
 

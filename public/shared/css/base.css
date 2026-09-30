@@ -111,6 +111,7 @@ input,select,textarea{font-family:inherit;}
   padding:3px 8px;border-radius:20px;font-weight:600;display:inline-block;
 }
 .pill-completed{background:var(--accent);color:#FFFFFF;}
+.pill-failed{background:var(--danger);color:#FFFFFF;}
 .pill-eligible{border:1.4px solid var(--accent-2);color:var(--accent-2);}
 .pill-locked{background:var(--node-locked-fill);color:var(--text-muted);border:1px solid var(--border);}
 .pill-open{border:1.4px solid var(--danger);color:var(--danger);}

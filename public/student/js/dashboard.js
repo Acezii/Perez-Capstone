@@ -95,14 +95,20 @@ window.addEventListener("offline", updateOfflineBanner);
 updateOfflineBanner();
 
 let subjectsById = {};
+let termBuilderIds = new Set();
 let unitCap = 21;
 const selectedTerm = new Set();
 let lastResult = null;
+
+function termBuilderSubjects(subjects) {
+  return subjects.filter((subject) => termBuilderIds.has(subject.id));
+}
 
 async function loadProgress() {
   try {
     const data = await apiGet(`/api/students/${profile.id}/progress`, "student");
     const subjects = data.progress.subjects;
+    termBuilderIds = new Set(data.progress.termBuilderSubjectIds || []);
     subjectsById = {};
     subjects.forEach((s) => (subjectsById[s.id] = s));
 
@@ -124,7 +130,7 @@ async function loadProgress() {
 
     renderChips(
       document.getElementById("eligibleChips"),
-      subjects.filter((s) => s.status === "eligible"),
+      termBuilderSubjects(subjects),
       selectedTerm,
       unitCap,
       onChipToggle
@@ -173,7 +179,7 @@ function onChipToggle(subject) {
   }
   renderChips(
     document.getElementById("eligibleChips"),
-    Object.values(subjectsById).filter((s) => s.status === "eligible"),
+    termBuilderSubjects(Object.values(subjectsById)),
     selectedTerm,
     unitCap,
     onChipToggle
@@ -205,7 +211,7 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
 document.getElementById("clearBtn").addEventListener("click", () => {
   selectedTerm.clear();
   lastResult = null;
-  renderChips(document.getElementById("eligibleChips"), Object.values(subjectsById).filter((s) => s.status === "eligible"), selectedTerm, unitCap, onChipToggle);
+  renderChips(document.getElementById("eligibleChips"), termBuilderSubjects(Object.values(subjectsById)), selectedTerm, unitCap, onChipToggle);
   renderUnitMeter(document.getElementById("unitFill"), document.getElementById("unitLabel"), 0, unitCap);
   renderSchedule(document.getElementById("scheduleGrid"), document.getElementById("conflictLog"), null, subjectsById);
 });

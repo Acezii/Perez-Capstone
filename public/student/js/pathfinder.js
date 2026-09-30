@@ -70,6 +70,9 @@ export function renderConstellation(svg, subjects, prereqMap, onToggle) {
     if (s.status === "completed") {
       c.setAttribute("fill", "var(--accent)");
       c.setAttribute("stroke", "var(--accent)");
+    } else if (s.status === "failed") {
+      c.setAttribute("fill", "var(--danger)");
+      c.setAttribute("stroke", "var(--danger)");
     } else if (s.status === "eligible") {
       c.setAttribute("fill", "var(--bg)");
       c.setAttribute("stroke", "var(--accent)");
@@ -100,7 +103,7 @@ export function renderSubjectGrid(container, subjects, onToggle) {
   container.innerHTML = "";
   subjects.forEach((s) => {
     const card = document.createElement("div");
-    card.className = "subject-card" + (s.status === "completed" ? " is-completed" : "");
+    card.className = "subject-card" + (s.status === "completed" ? " is-completed" : s.status === "failed" ? " is-failed" : "");
     card.innerHTML = `
       <div class="code mono">${s.code} · Y${s.year_level}S${s.sem} · ${s.units} units</div>
       <div class="name">${s.name}</div>
